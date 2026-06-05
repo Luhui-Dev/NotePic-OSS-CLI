@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install build tooling
+        run: pip install build
+
+      - name: Verify package version matches tag
+        id: ver
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKG=$(python -c "import notepic_oss; print(notepic_oss.__version__)")
+          if [ "$VERSION" != "$PKG" ]; then
+            echo "Tag version '$VERSION' does not match notepic_oss.__version__ '$PKG'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: NotePic-OSS-CLI v${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+          body: |
+            ## Install
+
+            ```bash
+            pip install notepic-oss==${{ steps.ver.outputs.version }}
+            ```
