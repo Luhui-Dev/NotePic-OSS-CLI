@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
 [![Release](https://img.shields.io/github/v/release/Luhui-Dev/NotePic-OSS-CLI)](https://github.com/Luhui-Dev/NotePic-OSS-CLI/releases)
 
-**Made by [@LuhuiDev](https://luhuidev.com) · Part of [LuhuiDev Toolkit](https://luhuidev.com)**
+**Made by [@LuhuiDev](https://luhuidev.com)**
 
 NotePic OSS CLI 是 NotePic OSS 的命令行实现。它会扫描 Markdown / MDX / HTML 中的图片引用，上传到阿里云 OSS，并把文档中的本地链接改写为公网 URL。适合批量迁移文章、接入 CI、静态站点构建或服务器脚本。
 
@@ -15,11 +15,7 @@ NotePic OSS CLI 是 NotePic OSS 的命令行实现。它会扫描 Markdown / MDX
 ## 快速开始
 
 ```bash
-git clone git@github.com:Luhui-Dev/NotePic-OSS-CLI.git
-cd NotePic-OSS-CLI
-
-pip install -e .
-cp .env.example .env
+pip install "notepic-oss @ https://github.com/Luhui-Dev/NotePic-OSS-CLI/releases/download/v1.0.0/notepic_oss-1.0.0-py3-none-any.whl"
 # 编辑 .env，填入 OSS 配置
 
 notepic-oss article.md --env-file .env
@@ -59,6 +55,14 @@ Done. found=2 uploaded=1 skipped=1 failed=0
 需要 Python 3.9+。
 
 ```bash
+pip install "notepic-oss @ https://github.com/Luhui-Dev/NotePic-OSS-CLI/releases/download/v1.0.0/notepic_oss-1.0.0-py3-none-any.whl"
+```
+
+如果需要从源码安装或参与开发：
+
+```bash
+git clone git@github.com:Luhui-Dev/NotePic-OSS-CLI.git
+cd NotePic-OSS-CLI
 pip install -e .
 ```
 
