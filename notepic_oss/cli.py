@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import __version__
+from . import PROTOCOL_VERSION, __version__
 from .config import Config, load_env_file
 from .processor import HtmlProcessor, MarkdownProcessor
 from .uploader import OSSUploader
@@ -88,7 +88,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version", "-V",
         action="version",
-        version=f"%(prog)s {__version__}",
+        version=f"%(prog)s {__version__} (protocol {PROTOCOL_VERSION})",
     )
     return parser
 
