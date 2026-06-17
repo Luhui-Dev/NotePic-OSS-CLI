@@ -48,7 +48,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-q", "--quality",
         type=int, default=85, metavar="N",
-        help="JPEG / WebP quality, 1–100 (default: 85).",
+        help="JPEG / WebP / PNG quality, 1–100 (default: 85). "
+             "100 keeps PNGs lossless; below 100 quantizes them to 256 colors.",
     )
     parser.add_argument(
         "--process-remote",

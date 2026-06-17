@@ -2,7 +2,9 @@
 
 The goal is to reduce file size meaningfully while preserving visual quality:
 - JPEG: progressive + quality 85 (visually near-lossless), MozJPEG-style optimization.
-- PNG: lossless optimization; only kept if smaller than the original.
+- PNG: quality 100 -> lossless optimization; quality < 100 -> quantized to a
+  256-color palette (still keeping alpha), mirroring the Obsidian plugin's
+  UPNG-based quantization. Either way, only kept if smaller than the original.
 - WebP: re-encoded with method=6 (max effort) at the configured quality.
 - GIF / SVG / animated images: returned unchanged so we don't break animation
   or vector graphics.
@@ -62,7 +64,7 @@ def compress_image(data: bytes, ext: str, quality: int = 85) -> Tuple[bytes, str
         return _encode_jpeg(img, data, quality)
 
     if ext == ".png" or fmt == "PNG":
-        return _encode_png(img, data)
+        return _encode_png(img, data, quality)
 
     if ext == ".webp" or fmt == "WEBP":
         return _encode_webp(img, data, quality)
@@ -71,7 +73,7 @@ def compress_image(data: bytes, ext: str, quality: int = 85) -> Tuple[bytes, str
     # otherwise PNG. Fall back to original on failure.
     try:
         if img.mode in ("RGBA", "LA", "P"):
-            return _encode_png(img.convert("RGBA"), data)
+            return _encode_png(img.convert("RGBA"), data, quality)
         return _encode_jpeg(img.convert("RGB"), data, quality)
     except Exception:
         return data, ext
@@ -102,7 +104,12 @@ def _encode_jpeg(img: "Image.Image", original: bytes, quality: int) -> Tuple[byt
     return original, ".jpg"
 
 
-def _encode_png(img: "Image.Image", original: bytes) -> Tuple[bytes, str]:
+def _encode_png(img: "Image.Image", original: bytes, quality: int) -> Tuple[bytes, str]:
+    # quality 100 means "no quantization" — match the Obsidian plugin's
+    # treatment of its quality slider for PNGs (see PROTOCOL.md §4.1).
+    if quality < 100:
+        img = img.quantize(colors=256, method=Image.Quantize.FASTOCTREE)
+
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
     encoded = out.getvalue()
