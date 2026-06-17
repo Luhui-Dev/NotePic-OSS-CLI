@@ -83,6 +83,28 @@ _IMAGE_EXTS = frozenset({
     ".avif", ".bmp", ".tif", ".tiff", ".ico",
 })
 
+# Reverse of the §3.4 Content-Type table, used to sniff the extension of a
+# remote image from its response headers. Must stay in sync with the
+# Obsidian plugin's CONTENT_TYPE_EXT table in src/core/pipeline.ts.
+_CONTENT_TYPE_EXT = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/svg+xml": ".svg",
+    "image/avif": ".avif",
+    "image/bmp": ".bmp",
+    "image/tiff": ".tif",
+    "image/x-icon": ".ico",
+}
+
+
+def _ext_from_content_type(content_type: Optional[str]) -> Optional[str]:
+    if not content_type:
+        return None
+    base = content_type.split(";", 1)[0].strip().lower()
+    return _CONTENT_TYPE_EXT.get(base)
+
 # Fenced code blocks and inline code in Markdown.
 _MD_CODE_RE = re.compile(
     r"```.*?```|~~~.*?~~~|`[^`\n]+`",
@@ -350,7 +372,12 @@ class _BaseProcessor:
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = resp.read()
-            ext = Path(urllib.parse.urlparse(url).path).suffix or ".jpg"
+                content_type = resp.headers.get("Content-Type")
+            ext = (
+                _ext_from_content_type(content_type)
+                or Path(urllib.parse.urlparse(url).path).suffix
+                or ".jpg"
+            )
             return data, ext
 
         decoded = urllib.parse.unquote(url)
