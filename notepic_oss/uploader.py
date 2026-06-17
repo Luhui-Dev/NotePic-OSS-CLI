@@ -7,7 +7,6 @@ which makes runs idempotent and keeps the bucket clean.
 from __future__ import annotations
 
 import hashlib
-import mimetypes
 
 try:
     import oss2
@@ -18,6 +17,24 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 from .config import Config
+
+# §3.4 Content-Type table — a static, platform-independent lookup so this
+# doesn't depend on the OS's mime database (which is what `mimetypes.guess_type`
+# reads, and isn't guaranteed to agree with this table). Must stay in sync with
+# the Obsidian plugin's MIME table in src/core/uploader.ts.
+_CONTENT_TYPES = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".avif": "image/avif",
+    ".bmp": "image/bmp",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".ico": "image/x-icon",
+}
 
 
 class OSSUploader:
@@ -37,7 +54,7 @@ class OSSUploader:
         key = f"{self.config.prefix}/{filename}" if self.config.prefix else filename
 
         if not self.bucket.object_exists(key):
-            content_type, _ = mimetypes.guess_type(filename)
+            content_type = _CONTENT_TYPES.get(ext)
             headers = {"Content-Type": content_type} if content_type else None
             self.bucket.put_object(key, data, headers=headers)
 
